@@ -2,9 +2,6 @@
 A full-featured Job Board platform built with [specify technologies, e.g., Laravel, MySQL], designed to connect employers with potential candidates seamlessly. This platform allows users to browse job listings, apply for jobs, and manage their applications. Employers can post job openings, manage listings, and view applicants.
 Job Board Platform
 
-A full-featured Job Board platform built with [specify technologies, e.g., Laravel, React, MySQL], designed to connect employers with potential candidates seamlessly. This platform allows users to browse job listings, apply for jobs, and manage their applications. Employers can post job openings, manage listings, and view applicants.
-Key Features:
-
     Job Search & Filtering: Advanced search with filters for job type, location, salary range, and more.
     User Authentication: Secure login and registration for job seekers and employers.
     Job Application Management: Easily apply for jobs and track application status.
