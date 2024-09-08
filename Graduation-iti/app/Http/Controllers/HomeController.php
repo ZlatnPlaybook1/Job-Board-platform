@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Employeeclass;
 use App\Models\EmployeePost;
 use App\Models\Employeetype;
-use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
@@ -33,8 +32,8 @@ class HomeController extends Controller
 
         // Fetch latest jobs, limit to 6 records
         $latestJobs = EmployeePost::where('status', 1)
-                        ->where('isFeatured', 1) // Use 0 to fetch non-featured jobs
-                        ->orderBy('created_at', 'ASC') // Use DESC to get the latest jobs
+                        ->where('isFeatured', 1)
+                        ->orderBy('created_at', 'ASC')
                         ->with('employeeType')
                         ->take(6)
                         ->get();

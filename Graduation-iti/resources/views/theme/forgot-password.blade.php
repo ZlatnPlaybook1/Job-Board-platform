@@ -8,10 +8,7 @@
         <div class="row d-flex justify-content-center">
             <div class="col-md-5">
                 <div class="card shadow border-0 p-5">
-                    <h1 class="h3">Forgot Password</h1>
-                    <form action="{{ route('account.proccessForgetPassword') }}" method="POST">
-                        @csrf
-                        @if (session('success'))
+                    @if (session('success'))
                             <div style="
                                 padding: 15px;
                                 margin-bottom: 20px;
@@ -22,10 +19,10 @@
                                 font-family: 'Montserrat', sans-serif;
                                 font-size: 16px;
                                 text-align: center;">
-                                {{ session('status') }}
+                                {{ session('success') }}
                             </div>
                         @endif
-                        @if (session('error'))
+                    @if (session('error'))
                             <div style="
                                 padding: 15px;
                                 margin-bottom: 20px;
@@ -39,7 +36,9 @@
                                 {{ session('error') }}
                             </div>
                         @endif
-
+                    <h1 class="h3">Forgot Password</h1>
+                    <form action="{{ route('account.proccessForgetPassword') }}" method="POST">
+                        @csrf
                         <div class="mb-3">
                             <label for="" class="mb-2">Email*</label>
                             <input type="text" value="{{ old('email') }}" name="email" id="email" class="form-control" placeholder="example@example.com">

@@ -6,18 +6,13 @@ use App\Http\Requests\EmplouyeePostRequest;
 use App\Models\EmployeePost;
 use App\Models\EmployeeClass;
 use App\Models\Employeetype;
-use Illuminate\Container\Attributes\Auth;
-use Illuminate\Http\Request;
 
 class EmployeePostController extends Controller
 {
-    public function createEmployment()
-    {
-        // Fetch employee classes with status 1 and order by name
+    // Create post from user or admin
+    public function createEmployment(){
         $employee_classes = Employeeclass::orderBy('name', 'ASC')->where('status', 1)->get();
-        // Fetch employment types with status 1 and order by name
         $employ_types = Employeetype::orderBy('name', 'ASC')->where('status', 1)->get();
-        // Fetch all employment positions
         $employment_posts = EmployeePost::all();
         // Return the data to the view
         return view('theme.account.job.create', [
@@ -27,20 +22,17 @@ class EmployeePostController extends Controller
         ]);
     }
 
-    public function store(EmplouyeePostRequest $request)
-    {
-        // Validate and retrieve the request data
+    // Store the post
+    public function store(EmplouyeePostRequest $request){
         $validatedData = $request->validated();
         // Assign the authenticated user's ID to the user_id field
         $validatedData['user_id'] = auth()->user()->id;
-        // Create the EmployeePost record
         $employeePost = EmployeePost::create($validatedData);
-        // Save the data to the database
         $employeePost->save();
-        // Redirect or return a response as needed
         return redirect()->route('account.employmentJobs')->with('success', 'Employment post created successfully!');
     }
 
+    // Show the Employee Jobs Posts
     public function employmentJobs(){
         $employeePosts = EmployeePost::where('user_id', auth()->user()->id)
             ->with(['employeeType', 'employeeClass'])
@@ -53,8 +45,7 @@ class EmployeePostController extends Controller
     }
 
     // Show the edit form for a specific post
-    public function edit($id)
-    {
+    public function edit($id){
         // dd($id) ;
         $employeePost = EmployeePost::findOrFail($id);
         $employee_classes = EmployeeClass::orderBy('name', 'ASC')->where('status', 1)->get();
@@ -68,30 +59,27 @@ class EmployeePostController extends Controller
     }
 
     // Update the specified post
-    public function update(EmplouyeePostRequest $request, $id)
-    {
+    public function update(EmplouyeePostRequest $request, $id){
         $validatedData = $request->validated();
         $employeePost = EmployeePost::findOrFail($id);
         $employeePost->update($validatedData);
 
         return redirect()->route('account.employmentJobs')->with('success', 'Employment post updated successfully!');
     }
+
     // Show the specific post
-    public function show($id)
-    {
+    public function show($id){
         $employeePost = EmployeePost::findOrFail($id);
         return view('', ['employeePost' => $employeePost]);
     }
 
-    public function destroy($id)
-    {
+    // Remove Specific post
+    public function destroy($id){
         // Find the employee post by ID
         $employeePost = EmployeePost::findOrFail($id);
-
-        // Delete the employee post
         $employeePost->delete();
-
-        // Redirect or return a response as needed
         return redirect()->route('account.employmentJobs')->with('success', 'Employment post deleted successfully!');
     }
+
+
 }

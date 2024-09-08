@@ -4,11 +4,10 @@ namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CompleteEmployeeRequest;
-use App\Http\Requests\EmplouyeePostRequest;
 use App\Models\Employeeclass;
 use App\Models\EmployeePost;
 use App\Models\Employeetype;
-use Illuminate\Http\Request;
+
 
 class JobController extends Controller
 {
@@ -35,6 +34,7 @@ class JobController extends Controller
     // Update the specified post
     public function update(CompleteEmployeeRequest $request, $id)
     {
+
         $validatedData = $request->validated();
         // Set default values if the inputs are not present
         $validatedData['isFeatured'] = $request->has('isFeatured') ? 1 : 0;

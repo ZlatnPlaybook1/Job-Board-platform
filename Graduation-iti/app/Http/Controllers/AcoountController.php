@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\JobDetailsRequest;
-use App\Models\EmploymentPosition;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\UpdatePasswordRequest;
@@ -11,8 +9,6 @@ use App\Http\Requests\UpdateProfile;
 use App\Http\Requests\UpdateProfilePic;
 use App\Mail\ResetPasswordEmail;
 use Illuminate\Support\Facades\Log;
-use App\Models\EmployeeClass;
-use App\Models\EmploymentType;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -33,25 +29,17 @@ class AcoountController extends Controller
         return view('theme.account.login');
     }
 
+    // Store datar egister
     public function store(RegisterRequest $request){
-        // Validate the request data
         $validatedData = $request->validated();
-
-        // Hash the password before saving
         $validatedData['password'] = Hash::make($validatedData['password']);
-
-        // Create a new member with validated data
         User::create($validatedData);
-
-        // Redirect to the login page with a success message
         return redirect()->route('account.login')->with('status', 'Registration successful. Please log in.');
     }
 
+    // Authinticate data in login and go to page peofile
     public function authenticate(LoginRequest $request ) {
-        // Validate the request data
         $validatedData = $request->validated();
-
-        // Attempt to authenticate the user
         if (Auth::attempt([
             'email' => $validatedData['email'],
             'password' => $validatedData['password']
@@ -64,6 +52,7 @@ class AcoountController extends Controller
         }
     }
 
+    // Show profile page
     public function profile(){
         $id = Auth::user()->id;
 
@@ -74,62 +63,30 @@ class AcoountController extends Controller
         ]);
     }
 
+    // Update Profile data  and save it
     public function updateProfile(UpdateProfile $request){
-        // Validate the request data
         $validatedData = $request->validated();
         $id = Auth::user()->id;
         // Find the user by their ID
         $user = User::find($id);
         if (!$user) {
-            // Handle the case where the user is not found (optional)
             return response()->json(['message' => 'User not found.'], 404);
         }
         // Update the user's profile with the validated data
         $user->update($validatedData);
         // Flash a success message to the session
         session()->flash('status', 'Profile updated successfully.');
-        // Optionally, redirect back or return a response
-        return redirect()->back(); // Redirects back to the previous page with the flash message
+        return redirect()->back();
     }
 
+    // Logout
     public function logout(){
         Auth::logout();
         return redirect()->route('account.login');
     }
 
-    // public function updateProfilePic(UpdateProfilePic $request){
-    //     // Validate the request data
-    //     $validatedData = $request->validated();
-    //     // Get the authenticated user's ID
-    //     $id = Auth::id();
-    //     // Find the user by their ID
-    //     $user = User::find($id);
-    //     // Handle the image upload if an image is provided
-    //     if ($request->hasFile('image')) {
-    //         $destination_path = public_path('profilePic');
-    //         $image = $request->file('image');
-    //         $ext = $image->getClientOriginalExtension();
-    //         $imageName = $id . '-' . time() . '.' . $ext;
-
-    //         // Store the image in the 'profile_pic' folder
-    //         $image->move($destination_path, $imageName);
-
-    //         // Update the user's image field
-    //         $user->update(['image' => $imageName]);
-    //     }
-    //     if (!$user) {
-    //         // Handle the case where the user is not found (optional)
-    //         return response()->json(['message' => 'User not found.'], 404);
-    //     }
-    //     // Update the user's profile with the validated data
-    //     $user->update($validatedData);
-    //     // Flash a success message to the session
-    //     session()->flash('status', 'Profile Picture updated successfully.');
-    //     // Redirect back or to a specific route
-    //     return redirect()->back();
-    // }
-    public function updateProfilePic(UpdateProfilePic $request)
-    {
+    // Update profile picture
+    public function updateProfilePic(UpdateProfilePic $request){
         $validatedData = $request->validated();
         $id = Auth::id();
         $user = User::find($id);
@@ -147,8 +104,8 @@ class AcoountController extends Controller
         return redirect()->back();
     }
 
-    public function updatePassword(UpdatePasswordRequest $request)
-    {
+    // Update password from profile
+    public function updatePassword(UpdatePasswordRequest $request){
         $validatedData = $request->validated();
         // Get the currently authenticated user
         $user = Auth::user();
@@ -168,8 +125,6 @@ class AcoountController extends Controller
         // Return a success message
         return redirect()->back()->with('status-updated', 'Password updated successfully.');
     }
-
-
 
     public function forgotPassword(){
         return view('theme.forgot-password');
@@ -204,37 +159,46 @@ class AcoountController extends Controller
     }
 
     public function resetPassword($tokenString){
-        $token = \DB::table('password_reset_tokens')->where('email' , $tokenString)->fisrt();
-
-        if($token == null){
-            return redirect()->route('account.forgotPassword')->with('error' , 'Invalid Token');
+        $token = \DB::table('password_reset_tokens')->where('token', $tokenString)->first();
+        if ($token == null) {
+          return redirect()->route('account.forgotPassword')->with('error', 'Invalid Token');
         }
-
-        return view('theme.reset-password',[
+        return view('theme.reset-password', [
             'tokenString' => $tokenString
         ]);
     }
 
-    public function proccessResetPassword(Request $request){
+    public function proccessResetPassword(Request $request) {
+        $token = \DB::table('password_reset_tokens')->where('token', $request->token)->first();
 
-        $token = \DB::table('password_reset_tokens')->where('email' , $request->token)->fisrt();
-
-        if($token == null){
-            return redirect()->route('account.forgotPassword')->with('error' , 'Invalid Token');
+        if ($token == null) {
+            return redirect()->route('account.forgotPassword')->with('error', 'Invalid Token');
         }
 
-        $validator = Validator::make($request->all(),[
-            'new_password' => 'required|min|5' ,
-            'confirm_password' => 'required|same:new_password' ,
+        // Correcting validation rule for new_password
+        $validator = Validator::make($request->all(), [
+            'new_password' => 'required|min:5',
+            'confirm_password' => 'required|same:new_password',
         ]);
-        if($validator->fails()){
-            return redirect()->route('account.resetPassword' ,$request->token)->withErrors($validator);
+
+        if ($validator->fails()) {
+            return redirect()->route('account.resetPassword', $request->token)->withErrors($validator);
         }
 
-        User::where('email' , $token->email)->update([
-            'password' => Hash::make($request->new_password)
-        ]);
-        return redirect()->route('account.login')->with('success' , 'You Have Successfully changed your password');
+        // User::where('email',$token->email)->update([
+        //     'password' => Hash::make($request->new_password)
+        // ]);
+        // Check if email exists for the token and update the password
+        if ($token->email) {
+            dd($token->email);
+            User::where('email', $token->email)->update([
+                'password' => Hash::make($request->new_password)
+            ]);
+
+            return redirect()->route('account.login')->with('success', 'You have successfully changed your password');
+        } else {
+            return redirect()->route('account.forgotPassword')->with('error', 'Invalid Token');
+        }
 
     }
 }

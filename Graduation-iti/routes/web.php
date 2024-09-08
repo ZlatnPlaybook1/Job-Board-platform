@@ -9,9 +9,7 @@ use App\Http\Controllers\admin\UserController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\EmployeePostController;
 use App\Http\Controllers\OccupationsController;
-// Route::get('/', function () {
-//     return view('welcome');
-// });
+
 
 Route::get("/", [HomeController::class, 'index'])->name('home');
 Route::get('/jobs', [OccupationsController::class, 'index'])->name('jobs');

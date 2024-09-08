@@ -229,7 +229,7 @@
                                 </div>
                                 @endforeach
                                 <div class="col-md-12">
-                                    {{ $employment_posts->withQueryString()->links() }}
+                                    {{ $employment_posts->withQueryString()->links('pagination::bootstrap-4') }}
                                 </div>
                             @else
                             <div class="col-md-12">Jobs not found</div>
@@ -259,15 +259,13 @@
         // Check if 'sort' is selected, if not set it to 'Latest' (value '1')
         const formData = new FormData(searchForm);
         if (!formData.has('sort') || formData.get('sort') === '') {
-            formData.set('sort', '1'); // '1' is the value for Latest
+            formData.set('sort', '1');
         }
 
         const queryString = new URLSearchParams(formData).toString();
         window.location.href = `${window.location.pathname}?${queryString}`;
     });
    });
-
-
 
 </script>
 @endsection

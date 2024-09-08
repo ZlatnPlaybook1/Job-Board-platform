@@ -8,7 +8,6 @@ use App\Models\EmployeeClass;
 use App\Models\EmployeePost;
 use App\Models\EmployeeSaved;
 use App\Models\EmployeeType;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -33,12 +32,10 @@ class OccupationsController extends Controller
 
     public function search(Request $request)
     {
-        // Fetch employee classes with status 1 and order by name
         $employee_classes = EmployeeClass::where('status', 1)->orderBy('name')->get()->all();
-        // Fetch employment types with status 1 and order by name
         $employ_types = EmployeeType::where('status', 1)->orderBy('name')->get();
-        // Initialize the query for employment posts
         $query = EmployeePost::where('status', 1)->with(['employeeType', 'employeeClass']);
+
         // Apply filters based on request parameters
         if ($request->filled('keyword')) {
             $query->where('title', 'like', '%' . $request->input('keyword') . '%')
@@ -66,10 +63,10 @@ class OccupationsController extends Controller
         // Apply sorting
         if ($request->filled('sort')) {
             $sort = $request->input('sort');
-            $query->orderBy('created_at', $sort == '1' ? 'desc' : 'asc');
+            $query->orderBy('created_at', $sort == '1' ? 'DESC' : 'ASC');
         }
         // Paginate the results
-        $employment_posts = $query->paginate(10);
+        $employment_posts = $query->paginate(5);
 
         return view('theme.jobs', [
             'employee_classes' => $employee_classes,
@@ -141,24 +138,25 @@ class OccupationsController extends Controller
        $action = $request->input('action');
 
        if ($action === 'apply') {
-           // // Send Notification Email to Employer
-           // $employer = $employment_post->employer;
-           // if (!$employer) {
-           //     Log::error('Employer not found');
-           //     return redirect()->back()->with('error', 'Employer not found');
-           // }
-           // $mailData = [
-           //     'employer' => $employer,
-           //     'user' => auth()->user(),
-           //     'employment_post' => $employment_post,
-           // ];
-           // try {
-           //     Mail::to($employer->email)->send(new EmployeeNotificationEmail($mailData));
-           //     Log::info('Notification email sent successfully');
-           // } catch (\Exception $e) {
-           //     Log::error('Failed to send email: ' . $e->getMessage());
-           //     return redirect()->back()->with('error', 'Failed to send notification email.');
-           // }
+           // Send Notification Email to Employer
+           $employer = $employment_post->employer;
+           if (!$employer) {
+               Log::error('Employer not found');
+               return redirect()->back()->with('error', 'Employer not found');
+           }
+           $mailData = [
+               'employer' => $employer,
+               'user' => auth()->user(),
+               'employment_post' => $employment_post,
+           ];
+           // dd($mailData);
+           try {
+               Mail::to($employer->email)->send(new EmployeeNotificationEmail($mailData));
+               Log::info('Notification email sent successfully');
+           } catch (\Exception $e) {
+               Log::error('Failed to send email: ' . $e->getMessage());
+               return redirect()->back()->with('error', 'Failed to send notification email.');
+           }
            return redirect()->back()->with('success', 'You have successfully applied.');
 
        } elseif ($action === 'save') {
